@@ -7,23 +7,39 @@ class Amqp {
         this.options = options;
     }
 
-    connect() {
-        if(channel) return Promise.resolve(channel);
-        return amqp.connect(`amqp://${this.options.host}:${this.options.port}`)
-            .then(connection => connection.createChannel())
-            .then(ch => {
-                ch.assertQueue(this.options.queueName, { durable: false });
-                channel = ch;
-                return channel;
-            });
+    get channel() {
+        return channel;
     }
 
-    send(data) {
+    set channel(ch) {
+        channel = ch;
+    }
+
+    createConnection() {
+        return amqp.connect(`amqp://${this.options.host}:${this.options.port}`);
+    }
+
+    createChannel(connection) {
+        return connection.createChannel();
+    }
+
+    storeChannel(ch) {
+        return this.channel = ch;
+    }
+
+    connect() {
+        if(this.channel) return Promise.resolve(this.channel);
+        return this.createConnection()
+            .then(this.createChannel.bind(this))
+            .then(this.storeChannel.bind(this));
+    }
+
+    send(queueName, data) {
         return this.connect().then(ch => {
-            return ch.sendToQueue(this.options.queueName, Buffer.from(JSON.stringify(data)));
+            ch.assertQueue(queueName);
+            return ch.sendToQueue(queueName, Buffer.from(JSON.stringify(data)));
         });
     }
-
 }
 
 module.exports = Amqp;

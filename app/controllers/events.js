@@ -3,7 +3,7 @@ const Amqp = require("./../amqp"),
 class EventsController {
     static postEvents (req, res) {
         const amqp = new Amqp(config.queue);
-        amqp.send(req.body)
+        amqp.send(config.queue.queueNames.events, req.body)
             .then(() => {
                 res.status(200).send();
             })
