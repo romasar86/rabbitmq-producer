@@ -2,7 +2,8 @@ module.exports = {
     type: "object",
     properties: {
         email: {
-            type: "string"
+            type: "string",
+            format: "email"
         },
         event: {
             type: "string"
